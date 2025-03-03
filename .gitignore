@@ -1,0 +1,18 @@
+# Ignore virtual environment
+MasterBayesianVenv/
+
+# Ignore Python compiled cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore TensorFlow Probability compiled files
+tensorflow_probability/
+
+# Ignore Jupyter notebook checkpoints
+.ipynb_checkpoints/
+
+# Ignore IDE files
+.vscode/
+.DS_Store
