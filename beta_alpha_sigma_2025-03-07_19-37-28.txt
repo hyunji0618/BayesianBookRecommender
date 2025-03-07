@@ -1,0 +1,4 @@
+Optimal sigma_u: 1.2274141149060676
+Optimal sigma_b: 0.1
+Optimal alpha_mu: 5.0
+Optimal beta_mu: 1.157947627935295
