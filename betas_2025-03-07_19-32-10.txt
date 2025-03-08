@@ -1,0 +1,2 @@
+Optimal sigma_u: 1.581412900518262
+Optimal sigma_b: 1.2340153000983256
