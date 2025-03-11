@@ -6,9 +6,7 @@ from PIL import Image, UnidentifiedImageError
 from io import BytesIO
 from bs4 import BeautifulSoup
 
-
-st.title("Book Recommendation System")
-
+st.title("📚Book Recommendation System")
 
 # Load datasets
 @st.cache_data
@@ -24,11 +22,14 @@ def load_data():
 
 df2, raw_df, book_data = load_data()
 
-### unique users for autocomplete
+### Unique users for autocomplete
 user_ids = raw_df['User-ID'].unique()
 
-# ## user selection
+# User selection
 random_user = st.selectbox("Select User ID", user_ids)
+
+# Checkbox for enabling/disabling image search
+allow_image_search = st.checkbox("Allow Image Search 🔎 (Title + Author)", value=True)
 
 # Get user books
 user_books = raw_df[raw_df['User-ID'] == random_user][['ISBN', 'Book-Rating']].sort_values(by='Book-Rating', ascending=False)
@@ -41,7 +42,7 @@ top_3_books = user_books.head(3)
 reccd_books = df2[df2['User-ID'] == random_user][['User-ID', 'ISBN']]
 reccd_books = reccd_books.merge(book_data, how='left', on='ISBN')
 
-# Image Fetching
+# Image Fetching Functions
 def is_valid_image(url, max_size=200):
     """Fetches and validates an image from a given URL."""
     headers = {"User-Agent": "Mozilla/5.0"}
@@ -59,10 +60,12 @@ def is_valid_image(url, max_size=200):
     except (requests.exceptions.RequestException, UnidentifiedImageError):
         return None
 
-def get_bing_image(isbn, book_title=None):
-    """Scrapes Bing Images for an ISBN and book title."""
-    search_url = f"https://www.bing.com/images/search?q=ISBN+{isbn}"
+def get_bing_image(book_title, author_name):
+    """Searches Bing Images for a book cover using title + author."""
+    query = f"{book_title} {author_name} book cover".replace(" ", "+")
+    search_url = f"https://www.bing.com/images/search?q={query}"
     headers = {"User-Agent": "Mozilla/5.0"}
+    
     try:
         response = requests.get(search_url, headers=headers, timeout=5)
         response.raise_for_status()
@@ -77,7 +80,8 @@ def get_bing_image(isbn, book_title=None):
         return None
 
 def fetch_image(row):
-    """Fetches the best available book image."""
+    """Fetches the best available book image, using Bing if enabled."""
+    # First, try provided image URLs
     if "Image-URL-L" in row and isinstance(row["Image-URL-L"], str):
         img = is_valid_image(row["Image-URL-L"])
         if img:
@@ -86,27 +90,41 @@ def fetch_image(row):
         img = is_valid_image(row["Image-URL-M"])
         if img:
             return img
-    if "ISBN" in row and isinstance(row["ISBN"], str):
-        bing_img_url = get_bing_image(row["ISBN"], row.get("Book-Title", ""))
+
+    # If enabled, search Bing using Book Title + Author
+    if allow_image_search and "Book-Title" in row and "Book-Author" in row:
+        bing_img_url = get_bing_image(row["Book-Title"], row["Book-Author"])
         if bing_img_url:
             img = is_valid_image(bing_img_url)
             if img:
                 return img
+
     return None
 
+# Default image URL
+DEFAULT_IMAGE = "https://upload.wikimedia.org/wikipedia/commons/a/a3/Image-not-found.png"
+
 # Display Top 3 Books
-st.subheader("Top 3 Rated Books")
+st.subheader("📖 Top 3 Rated Books")
 cols = st.columns(3)
 for i, row in top_3_books.iterrows():
     img = fetch_image(row)
     with cols[i]:
-        st.image(img if img else "https://upload.wikimedia.org/wikipedia/commons/a/a3/Image-not-found.png", caption=row["Book-Title"], use_column_width=True)
+        st.image(
+            img if img else DEFAULT_IMAGE,
+            caption=f" {row['Book-Title']} \n  {row.get('Book-Author', 'Unknown')}",
+            use_container_width=True
+        )
 
 # Display Recommended Book
-st.subheader("Recommended Book")
+st.subheader(" Recommended Book")
 if not reccd_books.empty:
     recc_book = reccd_books.iloc[0]
     img = fetch_image(recc_book)
-    st.image(img if img else "https://upload.wikimedia.org/wikipedia/commons/a/a3/Image-not-found.png", caption=recc_book["Book-Title"], use_column_width=True)
+    st.image(
+        img if img else DEFAULT_IMAGE, 
+        caption=f"{recc_book['Book-Title']} \n {recc_book.get('Book-Author', 'Unknown')}", 
+        use_container_width=True
+    )
 else:
     st.write("No recommendations available.")
