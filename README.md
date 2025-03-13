@@ -7,3 +7,9 @@ Model files exceed github size limit, some models are hosted here.
 
 
 UI here  -- > [https://masterbayesianbookrec.streamlit.app/](https://masterbayesianbookrec.streamlit.app/)
+
+
+
+
+
+Full Model Code can be seen in future improvements and in model training
