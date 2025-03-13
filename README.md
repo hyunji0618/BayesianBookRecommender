@@ -1,4 +1,4 @@
-See Readme_Bayesian.ipynb
+See [Readme_Bayesian.ipynb](https://github.com/BadgerDaniel/MasterBayesianBookRec/blob/main/Readme_Bayesian.ipynb)
 
 Section Titles are labelled with names for class presentation.
 
