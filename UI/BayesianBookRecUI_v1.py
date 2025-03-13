@@ -11,7 +11,7 @@ st.title("📚Book Recommendation System")
 # Load datasets
 @st.cache_data
 def load_data():
-    file_path = "book_info.nc"
+    file_path = "book_recommendations2.nc"
     ds2 = xr.open_dataset(file_path, engine='netcdf4')
     df2 = ds2.to_dataframe().reset_index()
 
@@ -22,24 +22,31 @@ def load_data():
 
 df2, raw_df, book_data = load_data()
 
-### Unique users for autocomplete
-user_ids = raw_df['User-ID'].unique()
 
-# User selection
-random_user = st.selectbox("Select User ID", user_ids)
+# Filter User-IDs that have at least one valid book recommendation
+valid_users = df2.dropna(subset=['Rec_1', 'Rec_2', 'Rec_3'])['User-ID'].unique()
 
-# Checkbox for enabling/disabling image search
+# User selection with default ID if available
+default_user_id = 278843  # Change as needed
+if default_user_id in valid_users:
+    default_index = list(valid_users).index(default_user_id)
+else:
+    default_index = 0  # Fallback to first valid user
+
+random_user = st.selectbox("Select User ID", valid_users, index=default_index)
+
+
 allow_image_search = st.checkbox("Allow Image Search 🔎 (Title + Author)", value=True)
 
-# Get user books
 user_books = raw_df[raw_df['User-ID'] == random_user][['ISBN', 'Book-Rating']].sort_values(by='Book-Rating', ascending=False)
 user_books = user_books.merge(book_data, how='left', on='ISBN')
 
-# Top 3 Books
+
 top_3_books = user_books.head(3)
 
-# Recommended Books
-reccd_books = df2[df2['User-ID'] == random_user][['User-ID', 'ISBN']]
+# Recommended Books (Reshape: Convert Rec_1, Rec_2, Rec_3 into a single column 'ISBN')
+reccd_books = df2[df2['User-ID'] == random_user][['User-ID', 'Rec_1', 'Rec_2', 'Rec_3']]
+reccd_books = reccd_books.melt(id_vars=['User-ID'], value_name='ISBN').drop(columns=['variable'])
 reccd_books = reccd_books.merge(book_data, how='left', on='ISBN')
 
 # Image Fetching Functions
@@ -101,7 +108,7 @@ def fetch_image(row):
 
     return None
 
-# Default image URL
+
 DEFAULT_IMAGE = "https://upload.wikimedia.org/wikipedia/commons/a/a3/Image-not-found.png"
 
 # Display Top 3 Books
@@ -115,16 +122,21 @@ for i, row in top_3_books.iterrows():
             caption=f" {row['Book-Title']} \n  {row.get('Book-Author', 'Unknown')}",
             use_container_width=True
         )
+# Display Recommended Books (Adjust columns dynamically)
+st.subheader("📚 Recommended Books")
 
-# Display Recommended Book
-st.subheader(" Recommended Book")
 if not reccd_books.empty:
-    recc_book = reccd_books.iloc[0]
-    img = fetch_image(recc_book)
-    st.image(
-        img if img else DEFAULT_IMAGE, 
-        caption=f"{recc_book['Book-Title']} \n {recc_book.get('Book-Author', 'Unknown')}", 
-        use_container_width=True
-    )
+    num_books = len(reccd_books)
+    cols = st.columns(num_books)  # Ensure we don't pass 0
+
+    for i, row in reccd_books.iterrows():
+        img = fetch_image(row)
+        with cols[i]:
+            st.image(
+                img if img else DEFAULT_IMAGE,
+                caption=f"{row['Book-Title']} \n {row.get('Book-Author', 'Unknown')}",
+                use_container_width=True
+            )
 else:
     st.write("No recommendations available.")
+
