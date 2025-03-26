@@ -1,5 +1,5 @@
 # **Book Recommendation System Using Bayesian Machine Learning**
-[Our Book Recommendation Engine](https://masterbayesianbookrec.streamlit.app/)
+[Click Here for Our Book Recommendation Engine](https://masterbayesianbookrec.streamlit.app/)
 
 **University of Chicago MS in Applied Data Science**
 
@@ -361,5 +361,6 @@ Our key takeaways include:
 - Evaluate the recommendations our model provides to improve fine-tuning. Possible metrics that can be considered: Diversity, Coverage, NDCG, and MRR
 - Utilize superior hardware to train better models (more latent dimensions, more data)
 
+### Appendix
 * Model files exceed Github size limit, some models are hosted [here](https://drive.google.com/drive/folders/1DbUQNgEGAtgdPEnzKIz93IVDIqvNarjS?usp=sharing).
 * Full Model Code can be seen in future improvements and model training.
