@@ -1,4 +1,4 @@
-# **Book Recommendation Using Bayesian Machine Learning**
+# **Book Recommendation System Using Bayesian Machine Learning**
 
 **University of Chicago MS in Applied Data Science**
 
